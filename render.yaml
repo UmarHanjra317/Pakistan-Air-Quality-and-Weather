@@ -11,6 +11,6 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.8
       - key: REFRESH_MINUTES      
-        value: "15"
+        value: "300"
       - key: HISTORY_DAYS         
         value: "90"
