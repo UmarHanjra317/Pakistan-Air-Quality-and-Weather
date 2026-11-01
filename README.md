@@ -68,7 +68,7 @@ Pakistan-Air-Quality-and-Weather/          <- this is the GitHub repository root
 ## 6. Installation
 ```bash
 python -m venv venv
-venv\Scripts\activate          # Windows   (Linux/macOS: source venv/bin/activate)
+venv\Scripts\activate      
 pip install -r requirements.txt
 ```
 
@@ -78,9 +78,9 @@ pip install -r requirements.txt
 python backend/app.py
 
 # Optional, by hand:
-python etl/etl_pipeline.py                                     # pull the latest data from the API now
-python etl/etl_pipeline.py --source csv --input my_data.csv    # offline: use a CSV instead
-python eda/exploratory_analysis.py                             # rebuild the static EDA report
+python etl/etl_pipeline.py                                     
+python etl/etl_pipeline.py --source csv --input my_data.csv  
+python eda/exploratory_analysis.py                           
 ```
 Open **http://127.0.0.1:5000** — pages: Dashboard, ETL, EDA, Air Quality, Weather, Cities, Data, About. The full EDA report is at `/report`. The header shows when the data was last updated; **↻ Refresh** pulls new data immediately.
 
@@ -95,13 +95,10 @@ Open **http://127.0.0.1:5000** — pages: Dashboard, ETL, EDA, Air Quality, Weat
 2. **Transform** – duplicate removal; type conversion; **Pydantic** schema validation with physical limits (coordinates, humidity 0–100, wind direction 0–360, non-negative pollutants …) with rejected rows quarantined; column-aware missing-value strategy applied *before* validation (per-city interpolation → median; mode for categories; no blind zero fill); calendar features rebuilt and cross-checked; derived AQI; IQR/Z-score outlier analysis (extreme pollution values are **retained**, not deleted).
 3. **Load** – cleaned CSV + SQLite table + `reports/etl_report.json` (row/column counts, missing values before/after, duplicates, quality scores).
 
-## 9. Open it on any device
 * **Dashboard (the running app):** after deploying with [DEPLOY.md](DEPLOY.md) you get a public link such as `https://pakistan-air-quality.onrender.com` - open it in any phone or computer browser (on a phone: browser menu -> *Add to Home Screen*).
 * **Code on a phone/tablet:** open your repository in the GitHub app or on github.com; press **.** (period) on a computer, or change `github.com` to `github.dev` in the address, for a full VS Code editor in the browser.
 * **Run it in the cloud without installing anything:** repository -> green **Code** button -> **Codespaces** -> **Create codespace**. Packages install automatically; run `python backend/app.py` and open the forwarded port 5000.
 
-## 9b. Screenshots
 Add dashboard screenshots to a `screenshots/` folder.
 
-## 10. Future work
 Phase 02 and later (outside this phase): scikit-learn pipeline and PyTorch/MLflow modelling.
