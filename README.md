@@ -74,10 +74,10 @@ pip install -r requirements.txt
 
 ## 7. Run
 ```bash
-# Dashboard - on first start it downloads the data from the API by itself, then refreshes every hour
+
 python backend/app.py
 
-# Optional, by hand:
+
 python etl/etl_pipeline.py                                     
 python etl/etl_pipeline.py --source csv --input my_data.csv  
 python eda/exploratory_analysis.py                           
