@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pakistan Air Quality and Weather — Phase 01</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">AQ</div>
+      <div>
+        <h1>Pakistan Air Quality and Weather</h1>
+        <p>Phase 01 — ETL &amp; Exploratory Data Analysis</p>
+      </div>
+    </div>
+    <div class="live-wrap">
+      <span id="liveStatus" class="live">● Connecting…</span>
+      <button id="refreshBtn" class="btn ghost small" title="Fetch the newest data from the API now">↻ Refresh</button>
+    </div>
+    <button id="menuBtn" class="menu-btn" aria-label="Toggle menu">☰</button>
+    <nav id="nav">
+      <a href="#dashboard" data-page="dashboard">Dashboard</a>
+      <a href="#etl" data-page="etl">ETL</a>
+      <a href="#eda" data-page="eda">EDA</a>
+      <a href="#airquality" data-page="airquality">Air Quality</a>
+      <a href="#weather" data-page="weather">Weather</a>
+      <a href="#cities" data-page="cities">Cities</a>
+      <a href="#data" data-page="data">Data</a>
+      <a href="#about" data-page="about">About</a>
+    </nav>
+  </header>
+
+  <!-- Global filters (not shown on ETL / About pages) -->
+  <section class="filters" id="filters">
+    <label>City <select id="fCity"></select></label>
+    <label>From <input type="date" id="fStart" /></label>
+    <label>To <input type="date" id="fEnd" /></label>
+    <label>Year <select id="fYear"></select></label>
+    <label>Month <select id="fMonth"></select></label>
+    <label>Pollutant <select id="fVar"></select></label>
+    <button id="fReset" class="btn ghost">Reset</button>
+  </section>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="page" id="page-dashboard">
+      <div class="cards" id="summaryCards"></div>
+      <div class="grid">
+        <div class="panel wide"><h3>AQI trend over time</h3><canvas id="cAqiTrend"></canvas></div>
+        <div class="panel"><h3 id="tSelTrend">Selected pollutant trend</h3><canvas id="cSelTrend"></canvas></div>
+        <div class="panel"><h3>AQI category share</h3><canvas id="cCategories"></canvas></div>
+        <div class="panel"><h3>PM2.5 trend</h3><canvas id="cPm25"></canvas></div>
+        <div class="panel"><h3>PM10 trend</h3><canvas id="cPm10"></canvas></div>
+        <div class="panel"><h3>Mean AQI by city</h3><canvas id="cCityAqi"></canvas></div>
+        <div class="panel"><h3>Monthly mean AQI</h3><canvas id="cMonthAqi"></canvas></div>
+        <div class="panel"><h3>Seasonal mean AQI</h3><canvas id="cSeason"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ETL -->
+    <section class="page" id="page-etl">
+      <h2 class="title">ETL pipeline summary</h2>
+      <div class="etl-flow" id="etlFlow"></div>
+      <div class="grid">
+        <div class="panel"><h3>1 · Extraction</h3><table class="kv" id="etlExtract"></table></div>
+        <div class="panel"><h3>2 · Transformation</h3><table class="kv" id="etlTransform"></table></div>
+        <div class="panel"><h3>3 · Loading</h3><table class="kv" id="etlLoad"></table></div>
+        <div class="panel"><h3>Data-quality scores</h3><div id="etlQuality"></div></div>
+        <div class="panel wide"><h3>Transformations performed</h3><ol id="etlLog" class="log"></ol></div>
+        <div class="panel wide"><h3>Pydantic validation rules (invalid-value checks)</h3><div class="scroll"><table class="tbl" id="etlRules"></table></div></div>
+        <div class="panel wide"><h3>Outlier analysis (IQR &amp; Z-score) — extremes retained as genuine events</h3><div class="scroll"><table class="tbl" id="etlOutliers"></table></div></div>
+        <div class="panel wide"><h3>Missing values before vs after cleaning</h3><div class="scroll"><table class="tbl" id="etlMissing"></table></div></div>
+      </div>
+    </section>
+
+    <!-- EDA -->
+    <section class="page" id="page-eda">
+      <h2 class="title">Exploratory data analysis <a class="btn ghost small" href="/report" target="_blank">Open full EDA report ↗</a></h2>
+      <div class="grid">
+        <div class="panel wide"><h3>Dataset overview</h3><div id="edaOverview" class="chips"></div></div>
+        <div class="panel wide"><h3>Descriptive statistics</h3><div class="scroll"><table class="tbl" id="edaStats"></table></div></div>
+        <div class="panel"><h3 id="tDist">Distribution</h3><canvas id="cDist"></canvas><p class="note" id="distNote"></p></div>
+        <div class="panel"><h3>Mean by hour of day</h3><canvas id="cHour"></canvas><p class="note" id="hourNote"></p></div>
+        <div class="panel"><h3>Mean by weekday</h3><canvas id="cDow"></canvas></div>
+        <div class="panel"><h3>Weekday vs weekend</h3><canvas id="cWeekend"></canvas></div>
+        <div class="panel wide"><h3>Correlation matrix</h3><div id="heatmap" class="heatmap"></div></div>
+        <div class="panel wide"><h3>Automatic insights</h3><ul id="insights" class="log"></ul></div>
+        <div class="panel wide"><h3>Missing-value analysis (current selection)</h3><div class="scroll"><table class="tbl" id="edaMissing"></table></div></div>
+      </div>
+    </section>
+
+    <!-- AIR QUALITY -->
+    <section class="page" id="page-airquality">
+      <h2 class="title">Air quality analysis</h2>
+      <div class="grid">
+        <div class="panel wide"><h3>Pollutant comparison by city (each pollutant shown as % of its highest city mean)</h3><canvas id="cPollCompare"></canvas></div>
+        <div class="panel"><h3 id="tAqDist">Distribution</h3><canvas id="cAqDist"></canvas></div>
+        <div class="panel"><h3>Box-plot statistics</h3><table class="kv" id="boxStats"></table></div>
+        <div class="panel wide"><h3>Selected pollutant by hour of day</h3><canvas id="cAqHour"></canvas></div>
+        <div class="panel wide"><h3>Selected pollutant — monthly means</h3><canvas id="cAqMonth"></canvas></div>
+      </div>
+    </section>
+
+    <!-- WEATHER -->
+    <section class="page" id="page-weather">
+      <h2 class="title">Weather analysis</h2>
+      <div class="filters inline"><label>Weather variable <select id="wVar"></select></label></div>
+      <div class="grid">
+        <div class="panel wide"><h3 id="tWTrend">Weather trend</h3><canvas id="cWTrend"></canvas></div>
+        <div class="panel"><h3 id="tWCity">By city</h3><canvas id="cWCity"></canvas></div>
+        <div class="panel"><h3 id="tWHour">By hour</h3><canvas id="cWHour"></canvas></div>
+        <div class="panel wide"><h3 id="tScatter">AQI vs weather variable (sample of up to 800 records)</h3><canvas id="cScatter"></canvas></div>
+      </div>
+    </section>
+
+    <!-- CITIES -->
+    <section class="page" id="page-cities">
+      <h2 class="title">City-based analysis</h2>
+      <div class="grid">
+        <div class="panel wide"><h3>City ranking (means for the selected date range, sorted by AQI)</h3><div class="scroll"><table class="tbl" id="cityTable"></table></div></div>
+        <div class="panel"><h3 id="tCityBar">Selected pollutant by city</h3><canvas id="cCityBar"></canvas></div>
+        <div class="panel"><h3 id="tCityTemp">Mean temperature by city</h3><canvas id="cCityTemp"></canvas></div>
+        <div class="panel wide"><h3 id="tCityTrend">Weekly trend by city</h3><canvas id="cCityTrend"></canvas></div>
+      </div>
+    </section>
+
+    <!-- DATA -->
+    <section class="page" id="page-data">
+      <h2 class="title">Cleaned dataset</h2>
+      <div class="panel">
+        <div class="table-tools">
+          <input id="tSearch" placeholder="Search city, season, category, date…" />
+          <select id="tSize"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
+          <details class="cols"><summary>Columns</summary><div id="colPicker"></div></details>
+        </div>
+        <div class="scroll"><table class="tbl sortable" id="dataTable"></table></div>
+        <div class="pager"><button class="btn ghost" id="prevP">‹ Prev</button><span id="pageInfo"></span><button class="btn ghost" id="nextP">Next ›</button></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="page" id="page-about">
+      <h2 class="title">About</h2>
+      <div class="panel prose">
+        <h3>Project</h3>
+        <p>This dashboard is <b>Phase 01</b> of the “Pakistan Air Quality and Weather” project: an <b>ETL pipeline</b> (pandas + Pydantic validation, loaded into a SQLite database) followed by a structured <b>exploratory data analysis</b>.</p>
+        <h3>Data</h3>
+        <p>Hourly observations of pollutants (PM2.5, PM10, CO, NO₂, SO₂, O₃, dust) and weather (temperature, humidity, precipitation, wind speed/direction, pressure) for the cities listed in the filter. The data is downloaded <b>live from the free Open-Meteo API</b> and refreshed automatically every hour, so the numbers and charts keep changing. Every number on this site is computed from the processed dataset.</p>
+        <h3>Derived AQI</h3>
+        <p>The source file contains an AQI <i>category</i> but no numeric AQI. A numeric AQI is derived from PM2.5 with the US EPA breakpoints (and verified against the supplied category). It reflects PM2.5 only.</p>
+        <h3>Scope</h3>
+        <p>Machine learning, prediction and forecasting are <b>not</b> part of Phase 01; they belong to later phases.</p>
+        <h3>Stack</h3>
+        <p>Python · pandas · Pydantic · SQLite · Flask · Open-Meteo API · HTML/CSS/JavaScript · Chart.js</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>Pakistan Air Quality and Weather · Phase 01 (ETL &amp; EDA) · Data shown is computed from the processed dataset</footer>
+  <script src="js/script.js"></script>
+</body>
+</html>

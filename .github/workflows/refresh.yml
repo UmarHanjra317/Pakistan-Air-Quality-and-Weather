@@ -1,0 +1,15 @@
+name: Refresh live data
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask the app to refresh
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then echo "::warning::Repository variable APP_URL is not set - skipping."; exit 0; fi
+          curl -sS --max-time 200 -X POST "$APP_URL/api/refresh?wait=1" || echo "::warning::Refresh call failed or was throttled"

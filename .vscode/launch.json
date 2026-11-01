@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run dashboard (Flask) - http://127.0.0.1:5000",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/app.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ETL: pull latest data from the API now",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/etl/etl_pipeline.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ETL: offline, use the bundled CSV",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/etl/etl_pipeline.py",
+      "args": ["--source", "csv"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "EDA: rebuild reports/eda_report.html",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/eda/exploratory_analysis.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}
